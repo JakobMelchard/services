@@ -12,7 +12,7 @@ make vet lint
 |---|---|
 | `cmd/<service>/` | binaries |
 | `internal/<service>/` | one service each, the UI embedded in the binary |
-| `scripts/<service>/`, `docs/<service>/` | screenshot scripts and images |
+| `scripts/<service>/`, `docs/<service>/` | screenshot scripts, docs and images |
 
 ## lists
 
@@ -30,3 +30,14 @@ make screenshots    # from internal/lists/data/demo
 ```
 
 One JSON file per list at `<dir>/lists/<id>.json`, the whole tree inside. A save writes the file atomically in the byte layout the files already have, so saving without a change leaves them identical. Files that do not parse, are not a well-formed tree, or are Syncthing conflict copies are skipped. Fixtures for the tests are in `internal/lists/data/lists`.
+
+## workouts
+
+Training blocks on Google Sheets with a phone PWA for logging. Sheet layout, API and offline behaviour: [docs/workouts](docs/workouts/README.md).
+
+```sh
+make run SHEETS=<file>    # {"program": "<id>", "active": "<id>", "archive": "<id>"}
+make screenshots
+```
+
+Building needs cgo, workline parses with its tree-sitter grammar. Live tests against scratch spreadsheets are opt-in, see [docs/workouts/gsheet.md](docs/workouts/gsheet.md).
