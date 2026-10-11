@@ -1,0 +1,32 @@
+{
+  "name": "go",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {
+    "ghcr.io/jakobmelchard/devcontainer/ws:1": {},
+    "ghcr.io/devcontainers/features/go:1": {
+      "version": "1.25"
+    }
+  },
+  "postCreateCommand": "go mod download && prek install",
+  "customizations": {
+    "codespaces": {
+      "repositories": {
+        "JakobMelchard/.githooks": {
+          "permissions": {
+            "contents": "read"
+          }
+        },
+        "JakobMelchard/.agents": {
+          "permissions": {
+            "contents": "read"
+          }
+        },
+        "JakobMelchard/.config": {
+          "permissions": {
+            "contents": "read"
+          }
+        }
+      }
+    }
+  }
+}
