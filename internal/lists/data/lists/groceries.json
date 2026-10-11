@@ -1,0 +1,14 @@
+{
+ "id": "groceries",
+ "text": "groceries",
+ "at": "2026-09-01T08:00:00.000Z",
+ "items": [
+  { "id": "g1", "text": "milk", "at": "2026-09-20T08:00:00.000Z", "items": [] },
+  { "id": "g2", "text": "eggs", "sev": 3, "at": "2026-09-20T08:05:00.000Z", "items": [] },
+  { "id": "g3", "text": "bakery", "at": "2026-09-20T08:10:00.000Z", "items": [
+   { "id": "g31", "text": "rye bread", "at": "2026-09-20T08:11:00.000Z", "items": [] },
+   { "id": "g32", "text": "croissants", "note": "only if fresh", "at": "2026-09-20T08:12:00.000Z", "done": "2026-09-20T18:00:00.000Z", "items": [] }
+  ] },
+  { "id": "g4", "text": "coffee", "at": "2026-09-19T08:00:00.000Z", "done": "2026-09-19T18:00:00.000Z", "items": [] }
+ ]
+}

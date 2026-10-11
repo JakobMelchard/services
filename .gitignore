@@ -1,3 +1,5 @@
 .DS_Store
-/services
 dist/
+bin/
+.data/
+tmp/

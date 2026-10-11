@@ -1,0 +1,41 @@
+{{/* htmx 4: attributes don't inherit, so every trigger carries its own target/swap. #q rides along so the filter survives mutations. */}}
+{{define "app"}}
+<nav class="row">
+  {{range .Lists}}<a href="/?list={{.ID}}" hx-get="/app?list={{.ID}}" hx-target="#app" hx-swap="innerHTML" hx-include="#q" class="{{if eq .ID $.ListID}}cur{{end}}">{{.Text}}</a>
+  {{end}}<form hx-post="/lists" hx-target="#app" hx-swap="innerHTML" hx-include="#q" class="row"><input name="text" placeholder="new list" required size="12"><button>+ list</button></form>
+</nav>
+{{with .List}}<section data-id="{{.ID}}">
+  <input type="hidden" id="list" name="list" value="{{.ID}}">
+  <header class="row"><h2>{{.Text}}</h2>
+    <span class="btns"><button hx-post="/lists/{{.ID}}/copy" hx-target="#app" hx-swap="innerHTML" hx-include="#q">dup</button>
+    <button hx-delete="/lists/{{.ID}}" hx-confirm="delete list '{{.Text}}'?" hx-target="#app" hx-swap="innerHTML" hx-include="#q">del</button></span></header>
+  <ul>{{range $.Items}}{{template "item" (node $.ListID . $.Now)}}{{end}}</ul>
+  {{template "add" (add .ID .ID $.Focus)}}
+</section>{{else}}<p><small>no lists</small></p>{{end}}
+{{end}}
+
+{{define "item"}}<li class="s{{.Sev}}{{if not .X.Done.IsZero}} done{{end}}" data-id="{{.X.ID}}" title="urgency {{.Sev}}">
+  <div class="row">
+    <input type="checkbox" {{if not .X.Done.IsZero}}checked {{end}}hx-post="/lists/{{.L}}/items/{{.X.ID}}/done" hx-target="#app" hx-swap="innerHTML" hx-include="#q">
+    <input class="text" name="text" value="{{.X.Text}}" aria-label="item name" hx-post="/lists/{{.L}}/items/{{.X.ID}}" hx-trigger="change" hx-target="#app" hx-swap="innerHTML" hx-include="#q">
+    <span class="btns">
+      <select class="sevpick" name="sev" title="urgency, 3 most urgent" aria-label="urgency" hx-post="/lists/{{.L}}/items/{{.X.ID}}" hx-trigger="change" hx-target="#app" hx-swap="innerHTML" hx-include="#q">{{range $n := levels}}<option{{if eq $n $.Sev}} selected{{end}}>{{$n}}</option>{{end}}</select>
+      <button hx-get="/lists/{{.L}}/items/{{.X.ID}}/add" hx-target="closest li" hx-swap="beforeend">sub</button>
+      <button hx-post="/lists/{{.L}}/items/{{.X.ID}}/copy" hx-target="#app" hx-swap="innerHTML" hx-include="#q">dup</button>
+      <button hx-delete="/lists/{{.L}}/items/{{.X.ID}}" hx-confirm="delete '{{.X.Text}}'?" hx-target="#app" hx-swap="innerHTML" hx-include="#q">del</button>
+    </span>
+  </div>
+  <input class="note" name="note" value="{{.X.Note}}" placeholder="note" aria-label="note" hx-post="/lists/{{.L}}/items/{{.X.ID}}" hx-trigger="change" hx-target="#app" hx-swap="innerHTML" hx-include="#q">
+  {{if .X.Items}}<ul>{{range sorted .X.Items .Now}}{{template "item" (node $.L . $.Now)}}{{end}}</ul>{{end}}
+</li>
+{{end}}
+
+{{/* Not focused on a full page load, so a fresh page shows no focus ring. */}}
+{{define "add"}}<form hx-post="/lists/{{.L}}/items" hx-target="#app" hx-swap="innerHTML" hx-include="#q" class="row add">
+  <input type="hidden" name="parent" value="{{.Parent}}">
+  <select name="sev" title="urgency, 3 most urgent" aria-label="urgency">{{range $n := levels}}<option{{if eq $n 1}} selected{{end}}>{{$n}}</option>{{end}}</select>
+  <input name="text" placeholder="item" required{{if .Focus}} autofocus{{end}}>
+  <input name="note" placeholder="note" size="14">
+  <button>add</button>
+</form>
+{{end}}

@@ -1,13 +1,32 @@
 # services
 
-Go services on the tailnet: lists, workouts
-
-Scaffolded from [JakobMelchard/template](https://github.com/JakobMelchard/template) (`go`).
-Templated files (CI caller, `.pre-commit-config.yaml`, devcontainer, org configs) come back through
-`copier update`; Renovate opens those updates as PRs.
+Go services on the tailnet: lists, workouts.
 
 ```sh
-brew install prek && prek install    # hooks pinned in .pre-commit-config.yaml
-go test ./...
-go run .
+make build    # bin/<service>
+make test
+make vet lint
 ```
+
+| Path | Contents |
+|---|---|
+| `cmd/<service>/` | binaries |
+| `internal/<service>/` | one service each, the UI embedded in the binary |
+| `scripts/<service>/`, `docs/<service>/` | screenshot scripts and images |
+
+## lists
+
+Todo and grocery lists as one recursive tree: a list is an item, its entries are items, entries nest. Files are the database.
+
+<p>
+  <img alt="Grocery list with nested sections, urgency bars, notes and checked items" src="docs/lists/screenshots/groceries.png" width="260">
+  <img alt="Todo list with subtasks and urgency levels" src="docs/lists/screenshots/todo.png" width="260">
+</p>
+
+```sh
+make build
+bin/lists -addr 127.0.0.1:8082 -data <dir>
+make screenshots    # from internal/lists/data/demo
+```
+
+One JSON file per list at `<dir>/lists/<id>.json`, the whole tree inside. A save writes the file atomically in the byte layout the files already have, so saving without a change leaves them identical. Files that do not parse, are not a well-formed tree, or are Syncthing conflict copies are skipped. Fixtures for the tests are in `internal/lists/data/lists`.
