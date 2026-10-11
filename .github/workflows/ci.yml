@@ -12,7 +12,7 @@ jobs:
   ci:
     uses: JakobMelchard/.github/.github/workflows/go.yml@e1ef2b10e7ee0c5426f78d63a4e9c6a0ce9b3fe9 # v1.6.0
     with:
-      # staticcheck v0.8 needs Go 1.26 to build; go.mod stays at 1.25.
+      # staticcheck v0.8 needs Go 1.26, the go directive in go.mod.
       go-version: "1.26"
       vet-cmd: make vet lint
       test-cmd: make test
