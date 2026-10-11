@@ -1,0 +1,5 @@
+# Read by mimi's deploy reconciler from the commit it deploys (infra hosts/mimi AGENTS.md).
+# The services are deploy/mimi/daemons/at.melchard.{lists,workouts}.plist.
+install = "GOFLAGS=-buildvcs=false make build"
+restart = "sudo -n launchctl kickstart -k system/at.melchard.lists && sudo -n launchctl kickstart -k system/at.melchard.workouts"
+health = "http://127.0.0.1:8082/"
