@@ -3,6 +3,8 @@ package store
 import (
 	"os"
 	"path/filepath"
+	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -49,5 +51,31 @@ func TestPutKeepsNodeBytes(t *testing.T) {
 	}
 	if string(b) != node {
 		t.Errorf("a save without changes rewrote the file:\n%s", b)
+	}
+}
+
+// Every fixture reads and survives a save: the data read back is the data read first.
+func TestFixturesRoundTrip(t *testing.T) {
+	files, _ := filepath.Glob("../data/lists/*.json")
+	if len(files) == 0 {
+		t.Fatal("no fixtures")
+	}
+	dir := t.TempDir()
+	if err := os.CopyFS(dir, os.DirFS("../data")); err != nil {
+		t.Fatal(err)
+	}
+	s := Dir(dir)
+	for _, f := range files {
+		id := strings.TrimSuffix(filepath.Base(f), ".json")
+		first, err := s.Get(id)
+		if err != nil {
+			t.Fatalf("%s: %v", id, err)
+		}
+		if err := s.Put(first); err != nil {
+			t.Fatal(err)
+		}
+		if again, err := s.Get(id); err != nil || !reflect.DeepEqual(first, again) {
+			t.Errorf("%s changed by a save: %v", id, err)
+		}
 	}
 }
