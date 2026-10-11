@@ -1,0 +1,76 @@
+{
+ "id": "todo",
+ "text": "todo",
+ "at": "2026-09-01T08:00:00.000Z",
+ "items": [
+  {
+   "id": "x17",
+   "text": "renew passport",
+   "at": "2026-10-02T08:17:00.000Z",
+   "sev": 3,
+   "note": "bring old one and a photo",
+   "items": [
+    {
+     "id": "x15",
+     "text": "book appointment",
+     "at": "2026-10-02T08:15:00.000Z",
+     "done": "2026-10-03T07:00:00.000Z",
+     "items": []
+    },
+    {
+     "id": "x16",
+     "text": "passport photo",
+     "at": "2026-10-01T08:16:00.000Z",
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "x18",
+   "text": "call dentist",
+   "at": "2026-10-01T08:18:00.000Z",
+   "sev": 2,
+   "items": []
+  },
+  {
+   "id": "x22",
+   "text": "plan weekend trip",
+   "at": "2026-10-01T08:22:00.000Z",
+   "items": [
+    {
+     "id": "x19",
+     "text": "check train times",
+     "at": "2026-10-02T08:19:00.000Z",
+     "items": []
+    },
+    {
+     "id": "x20",
+     "text": "book hostel",
+     "at": "2026-10-01T08:20:00.000Z",
+     "sev": 2,
+     "items": []
+    },
+    {
+     "id": "x21",
+     "text": "pack list",
+     "at": "2026-10-02T08:21:00.000Z",
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "x23",
+   "text": "fix bike brakes",
+   "at": "2026-10-02T08:23:00.000Z",
+   "note": "rear pads worn",
+   "items": []
+  },
+  {
+   "id": "x24",
+   "text": "return library books",
+   "at": "2026-10-01T08:24:00.000Z",
+   "done": "2026-10-03T07:00:00.000Z",
+   "items": []
+  }
+ ]
+}

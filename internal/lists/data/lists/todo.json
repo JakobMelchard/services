@@ -1,0 +1,34 @@
+{
+ "id": "todo",
+ "text": "todo",
+ "at": "2026-08-01T08:00:00.000Z",
+ "items": [
+  {
+   "id": "t1",
+   "text": "renew passport",
+   "sev": 1,
+   "at": "2026-08-10T08:00:00.000Z",
+   "note": "bring old one and photos",
+   "items": []
+  },
+  {
+   "id": "t2",
+   "text": "call dentist",
+   "at": "2026-09-10T08:00:00.000Z",
+   "items": []
+  },
+  {
+   "id": "t3",
+   "text": "read core SPEC",
+   "at": "2026-09-20T08:00:00.000Z",
+   "items": []
+  },
+  {
+   "id": "t4",
+   "text": "someday: learn rust",
+   "sev": 1,
+   "at": "2026-09-20T09:00:00.000Z",
+   "items": []
+  }
+ ]
+}

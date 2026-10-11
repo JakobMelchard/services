@@ -1,0 +1,103 @@
+{
+ "id": "groceries",
+ "text": "groceries",
+ "at": "2026-09-01T08:00:00.000Z",
+ "items": [
+  {
+   "id": "x5",
+   "text": "produce",
+   "at": "2026-10-02T08:05:00.000Z",
+   "items": [
+    {
+     "id": "x1",
+     "text": "bananas",
+     "at": "2026-10-02T08:01:00.000Z",
+     "items": []
+    },
+    {
+     "id": "x2",
+     "text": "spinach",
+     "at": "2026-10-01T08:02:00.000Z",
+     "sev": 2,
+     "items": []
+    },
+    {
+     "id": "x3",
+     "text": "lemons",
+     "at": "2026-10-02T08:03:00.000Z",
+     "note": "two, for the risotto",
+     "items": []
+    },
+    {
+     "id": "x4",
+     "text": "avocados",
+     "at": "2026-10-01T08:04:00.000Z",
+     "done": "2026-10-03T07:00:00.000Z",
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "x9",
+   "text": "dairy",
+   "at": "2026-10-02T08:09:00.000Z",
+   "items": [
+    {
+     "id": "x6",
+     "text": "oat milk",
+     "at": "2026-10-01T08:06:00.000Z",
+     "sev": 3,
+     "items": []
+    },
+    {
+     "id": "x7",
+     "text": "greek yogurt",
+     "at": "2026-10-02T08:07:00.000Z",
+     "items": []
+    },
+    {
+     "id": "x8",
+     "text": "parmesan",
+     "at": "2026-10-01T08:08:00.000Z",
+     "done": "2026-10-03T07:00:00.000Z",
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "x12",
+   "text": "bakery",
+   "at": "2026-10-01T08:12:00.000Z",
+   "items": [
+    {
+     "id": "x10",
+     "text": "sourdough loaf",
+     "at": "2026-10-01T08:10:00.000Z",
+     "items": []
+    },
+    {
+     "id": "x11",
+     "text": "croissants",
+     "at": "2026-10-02T08:11:00.000Z",
+     "note": "only if fresh",
+     "done": "2026-10-03T07:00:00.000Z",
+     "items": []
+    }
+   ]
+  },
+  {
+   "id": "x13",
+   "text": "coffee beans",
+   "at": "2026-10-02T08:13:00.000Z",
+   "sev": 3,
+   "note": "the light roast",
+   "items": []
+  },
+  {
+   "id": "x14",
+   "text": "dish soap",
+   "at": "2026-10-01T08:14:00.000Z",
+   "items": []
+  }
+ ]
+}
