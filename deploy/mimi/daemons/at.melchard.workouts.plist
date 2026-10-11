@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Sheet IDs are in infra hosts/mimi/etc/workouts/sheets.json. WORKOUTS_TOKEN and
+     GSHEET_SERVICE_PRINCIPAL_JSON come from Infisical at launch, SENTRY_DSN too (unset = off). -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>at.melchard.workouts</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/j/Workspaces/JakobMelchard/infra/hosts/mimi/scripts/with-secret</string>
+    <string>-o</string>
+    <string>SENTRY_DSN</string>
+    <string>SENTRY_DSN_WORKOUTS</string>
+    <string>/Users/j/Workspaces/JakobMelchard/infra/hosts/mimi/scripts/with-secret</string>
+    <string>WORKOUTS_TOKEN</string>
+    <string>WORKOUTS_TOKEN</string>
+    <string>/Users/j/Workspaces/JakobMelchard/infra/hosts/mimi/scripts/with-secret</string>
+    <string>GSHEET_SERVICE_PRINCIPAL_JSON</string>
+    <string>GSHEET_SERVICE_PRINCIPAL_JSON</string>
+    <string>/Users/j/Workspaces/JakobMelchard/services.tree/prd/bin/workouts</string>
+    <string>-addr</string><string>127.0.0.1:8093</string>
+    <string>-sheets</string><string>/Users/j/Workspaces/JakobMelchard/infra/hosts/mimi/etc/workouts/sheets.json</string>
+  </array>
+  <key>UserName</key><string>j</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key><string>/Users/j</string>
+  </dict>
+  <key>KeepAlive</key><true/>
+  <key>RunAtLoad</key><true/>
+  <key>ThrottleInterval</key><integer>5</integer>
+  <key>StandardOutPath</key><string>/Users/j/Workspaces/JakobMelchard/infra/hosts/mimi/logs/workouts.log</string>
+  <key>StandardErrorPath</key><string>/Users/j/Workspaces/JakobMelchard/infra/hosts/mimi/logs/workouts.log</string>
+</dict>
+</plist>
