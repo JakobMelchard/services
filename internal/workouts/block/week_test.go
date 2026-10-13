@@ -187,6 +187,19 @@ func TestGridRoundTrips(t *testing.T) {
 	}
 }
 
+func TestParseWeekKeepsLoadWithoutExercise(t *testing.T) {
+	g := [][]string{{"Mon", ""}, {"", "1x5 100kg"}, {"Squat", "1x5 80kg"}}
+	notes := []string{"", "typed in Sheets", ""}
+	rows := ParseWeek(g, notes)
+	if len(rows) != 2 || rows[0].Load != "1x5 100kg" || rows[0].Notes != "typed in Sheets" {
+		t.Fatalf("rows = %+v", rows)
+	}
+	got, gotNotes := Grid(rows, 0)
+	if !reflect.DeepEqual(got, g) || !reflect.DeepEqual(gotNotes, notes) {
+		t.Errorf("grid = %v %v, want %v %v", got, gotNotes, g, notes)
+	}
+}
+
 func TestWeekNumber(t *testing.T) {
 	for tab, want := range map[string]int{"w1": 1, "w41": 41, "w0": 0, "2026 w41": 0, "Week 1": 0, "W1": 0, "w41-46": 0} {
 		if n, _ := weekNumber(tab); n != want {
