@@ -213,6 +213,8 @@ func (a *app) newList(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *app) copyList(w http.ResponseWriter, r *http.Request) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
 	x, err := a.db.Get(r.PathValue("l"))
 	if err != nil {
 		http.NotFound(w, r)
@@ -228,6 +230,8 @@ func (a *app) copyList(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *app) delList(w http.ResponseWriter, r *http.Request) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
 	if err := a.db.Del(r.PathValue("l")); err != nil {
 		http.Error(w, err.Error(), 500)
 		return
