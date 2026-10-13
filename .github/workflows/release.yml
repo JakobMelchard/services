@@ -46,10 +46,11 @@ jobs:
         with:
           cache-provider: basic
 
-      # Before the secrets are loaded, so npm install scripts never see the keystore.
+      # Install scripts could plant code that runs later with the secrets, so none run;
+      # the lockfile has no package with one.
       - name: web build
         working-directory: capacitor
-        run: npm ci --no-audit --no-fund && npm run build && npx cap sync android
+        run: npm ci --ignore-scripts --no-audit --no-fund && npm run build && npx cap sync android
 
       - uses: Infisical/secrets-action@d2e351f16c6ca20d17c85e6c992e04bdeb64e87d # v1.0.18
         with:
