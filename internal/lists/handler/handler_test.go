@@ -329,3 +329,15 @@ func TestAutofocusAndEscaping(t *testing.T) {
 		t.Errorf("unescaped input: %s", h)
 	}
 }
+
+func TestCrossSitePostIsRefused(t *testing.T) {
+	f := mk(t)
+	r := httptest.NewRequest("POST", "/lists", strings.NewReader("name=evil"))
+	r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	r.Header.Set("Sec-Fetch-Site", "cross-site")
+	w := httptest.NewRecorder()
+	f.h.ServeHTTP(w, r)
+	if w.Code != http.StatusForbidden {
+		t.Errorf("cross-site POST = %d, want 403", w.Code)
+	}
+}
