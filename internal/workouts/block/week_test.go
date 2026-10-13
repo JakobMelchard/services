@@ -95,6 +95,14 @@ func TestApplyLoad(t *testing.T) {
 	}
 }
 
+// An empty load would be written as a day header and regroup the following sets.
+func TestApplyRejectsEmptyLoad(t *testing.T) {
+	rows := ParseWeek(grid())
+	if _, err := Apply(rows, ref(rows, 1), Patch{Load: ptr("  ")}); !errors.Is(err, ErrNoLoad) {
+		t.Fatalf("err = %v, want ErrNoLoad", err)
+	}
+}
+
 func TestDuplicateAndDeleteRenumberPerDay(t *testing.T) {
 	rows := ParseWeek(grid())
 	dup, err := Duplicate(rows, ref(rows, 0))

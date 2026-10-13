@@ -34,6 +34,9 @@ const (
 // usually because the tab was edited in the Sheets UI meanwhile.
 var ErrStale = errors.New("row changed since it was loaded; reload the week")
 
+// ErrNoLoad means an edit cleared a set's load; delete the set instead.
+var ErrNoLoad = errors.New("load required")
+
 var tagRe = regexp.MustCompile(`#([\p{L}\p{N}_-]+)`)
 
 // Row is one set of a week tab. Load is the cell; Reps, Weight, RPE and Rest
@@ -181,7 +184,9 @@ func Apply(rows []Row, ref Ref, p Patch) ([]Row, error) {
 	}
 	r := rows[ref.Index]
 	if p.Load != nil {
-		r.Load = strings.TrimSpace(*p.Load)
+		if r.Load = strings.TrimSpace(*p.Load); r.Load == "" {
+			return nil, ErrNoLoad
+		}
 	}
 	if p.Reps != nil || p.Weight != nil || p.RPE != nil || p.Rest != nil {
 		s := Set{r.Reps, r.Weight, r.RPE, r.Rest}
