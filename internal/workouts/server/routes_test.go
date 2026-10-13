@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"reflect"
 	"slices"
 	"strings"
 	"testing"
@@ -168,10 +169,14 @@ func TestWeekEdits(t *testing.T) {
 		t.Fatalf("after delete = %+v", v.Rows)
 	}
 
-	// The client saw a set that is no longer there: refused, nothing written.
-	stale := block.Ref{Index: 0, Day: "MON", Exercise: "Bench", Set: "1"}
+	// The client saw a set that is no longer there: refused, nothing written,
+	// and the day it named is not started.
+	stale := block.Ref{Index: 0, Day: "TUE", Exercise: "Bench", Set: "1"}
 	if w := call(t, h, "PATCH", rows, map[string]any{"ref": stale, "patch": block.Patch{Notes: &notes}}); w.Code != http.StatusConflict {
 		t.Errorf("stale edit: %d %q, want 409", w.Code, w.Body.String())
+	}
+	if after := view(t, call(t, h, "GET", rows, nil)); !reflect.DeepEqual(after, v) {
+		t.Fatalf("after stale edit = %+v, want %+v", after, v)
 	}
 
 	view(t, call(t, h, "POST", "/weeks/w10/days/TUE/start", nil))
