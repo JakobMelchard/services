@@ -11,6 +11,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -298,5 +299,36 @@ func TestAPIError(t *testing.T) {
 	var ae *gsheet.APIError
 	if !errors.As(err, &ae) || ae.Status != http.StatusBadRequest {
 		t.Fatalf("err = %v, want *APIError 400", err)
+	}
+}
+
+// EditRows sends the ops last first, shifted by offset, against the tab's id.
+func TestEditRows(t *testing.T) {
+	var body string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+			fmt.Fprint(w, `{"sheets":[{"properties":{"title":"Other","sheetId":1}},{"properties":{"title":"Log","sheetId":7}}]}`)
+			return
+		}
+		b, _ := io.ReadAll(r.Body)
+		body = string(b)
+		fmt.Fprint(w, `{}`)
+	}))
+	defer srv.Close()
+	dir := t.TempDir()
+	os.WriteFile(filepath.Join(dir, "tokens.json"), fmt.Appendf(nil, `{"default":"a","accounts":{"a":{"access_token":"t","expires_at":%d}}}`, time.Now().Add(time.Hour).Unix()), 0o600)
+	c := gsheet.New("S", gsheet.WithConfigDir(dir))
+	c.HTTP = &http.Client{Transport: &fakeTransport{target: strings.TrimPrefix(srv.URL, "http://")}}
+
+	ops := []gsheet.RowOp{{Start: 0, End: 1}, {Start: 2, End: 3}, {Start: 4, End: 6, Insert: true}}
+	if err := c.EditRows(t.Context(), "Log", 10, ops); err != nil {
+		t.Fatal(err)
+	}
+	want := `{"requests":[` +
+		`{"insertDimension":{"range":{"dimension":"ROWS","endIndex":16,"sheetId":7,"startIndex":14}}},` +
+		`{"deleteDimension":{"range":{"dimension":"ROWS","endIndex":13,"sheetId":7,"startIndex":12}}},` +
+		`{"deleteDimension":{"range":{"dimension":"ROWS","endIndex":11,"sheetId":7,"startIndex":10}}}]}`
+	if strings.TrimSpace(body) != want {
+		t.Errorf("batchUpdate body:\n%s\nwant:\n%s", body, want)
 	}
 }
