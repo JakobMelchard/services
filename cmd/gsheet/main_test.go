@@ -36,3 +36,11 @@ func TestParse(t *testing.T) {
 		t.Errorf("parse = %q, account %q, header %q", pos, *account, *header)
 	}
 }
+
+func TestSafeName(t *testing.T) {
+	for in, want := range map[string]string{"Plan 2026": "Plan_2026", "..": "sheet", ".": "sheet", "../x": "x", "a.b": "a.b"} {
+		if got := safeName(in); got != want {
+			t.Errorf("safeName(%q) = %q, want %q", in, got, want)
+		}
+	}
+}

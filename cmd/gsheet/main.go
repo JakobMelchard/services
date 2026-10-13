@@ -328,9 +328,10 @@ func pick(lines []string, prompt string) string {
 
 var unsafeRe = regexp.MustCompile(`[^A-Za-z0-9._-]`)
 
-// safeName turns a sheet or tab title into a file name.
+// safeName turns a sheet or tab title into a file name; no leading or trailing
+// dots, so it is never "..".
 func safeName(s string) string {
-	if s = strings.Trim(unsafeRe.ReplaceAllString(s, "_"), "_"); s != "" {
+	if s = strings.Trim(unsafeRe.ReplaceAllString(s, "_"), "_."); s != "" {
 		return s
 	}
 	return "sheet"
