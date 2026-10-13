@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -114,5 +115,29 @@ func TestConcurrentEdits(t *testing.T) {
 	}
 	if len(v.Rows) != n+1 || len(got) != n+1 {
 		t.Fatalf("w10 has %d rows of %d exercises after %d concurrent adds to 1 set, want %d: %v", len(v.Rows), len(got), n, n+1, got)
+	}
+}
+
+// Two blocks that log the same calendar week both keep their archive.
+func TestNextKeepsEarlierArchive(t *testing.T) {
+	st := fakeStore(t)
+	for range 2 {
+		if _, err := st.Edit(t.Context(), "w10", "MON", func(v block.View) ([]block.Row, error) { return v.Rows, nil }); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := st.Next(t.Context(), "w10-11"); err != nil {
+			t.Fatal(err)
+		}
+	}
+	tabs, err := st.Archive.Tabs(t.Context())
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got []string
+	for _, x := range tabs {
+		got = append(got, x.Title)
+	}
+	if want := []string{"2026 w10", "2026 w10 (2)"}; !slices.Equal(got, want) {
+		t.Fatalf("archive tabs = %q, want %q", got, want)
 	}
 }

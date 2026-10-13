@@ -142,8 +142,9 @@ func (s *Store) state(ctx context.Context) (*Info, []string, error) {
 // of program tab tab. No week tab is written yet: a day is written to its
 // week tab when it starts (see View). A program with invalid rows changes
 // nothing. Archive tabs are written before any week is removed from the
-// active sheet; a rerun after a partial failure overwrites the archive tabs
-// it already wrote. Cancelling ctx stops the reads; once the first tab is
+// active sheet. An existing archive tab is never replaced: the copy gets a
+// " (2)" suffix, so a rerun after a partial failure leaves duplicates rather
+// than losing an earlier block's week. Cancelling ctx stops the reads; once the first tab is
 // written the rest follows regardless, so a client that goes away does not
 // leave a block half archived.
 func (s *Store) Next(ctx context.Context, tab string) (*Info, error) {
@@ -160,9 +161,21 @@ func (s *Store) Next(ctx context.Context, tab string) (*Info, error) {
 	if err != nil {
 		return nil, err
 	}
+	archived, err := s.Archive.Tabs(ctx)
+	if err != nil {
+		return nil, err
+	}
+	taken := map[string]bool{}
+	for _, t := range archived {
+		taken[t.Title] = true
+	}
 	ctx = context.WithoutCancel(ctx)
 	for _, w := range logged {
-		if err := copyWeek(ctx, s.Active, s.Archive, w, ArchiveTab(cur.Started, w)); err != nil {
+		tab := ArchiveTab(cur.Started, w)
+		for i := 2; taken[tab]; i++ {
+			tab = fmt.Sprintf("%s (%d)", ArchiveTab(cur.Started, w), i)
+		}
+		if err := copyWeek(ctx, s.Active, s.Archive, w, tab); err != nil {
 			return nil, fmt.Errorf("archive %s: %w", w, err)
 		}
 	}
@@ -289,8 +302,7 @@ func ArchiveTab(started, w string) string {
 	return fmt.Sprintf("%d %s", year, w)
 }
 
-// copyWeek copies a week tab, values and notes, to tab on another sheet,
-// replacing a tab of that name left by an earlier attempt.
+// copyWeek copies a week tab, values and notes, to a new tab on another sheet.
 func copyWeek(ctx context.Context, from, to Sheet, w, tab string) error {
 	grid, notes, err := readWeek(ctx, from, w)
 	if err != nil {
