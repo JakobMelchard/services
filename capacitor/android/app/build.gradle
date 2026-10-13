@@ -17,12 +17,12 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
-    // Signed from the environment (release.yml); the same keystore signs fz.
+    // Signed from the environment (release.yml picks the keystore's alias); the org keystore from Infisical /release.
     signingConfigs {
         release {
             storeFile = System.getenv("KEYSTORE_PATH") ? file(System.getenv("KEYSTORE_PATH")) : null
             storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
-            keyAlias = System.getenv("ANDROID_KEY_ALIAS") ?: "fz"
+            keyAlias = System.getenv("ANDROID_KEY_ALIAS")
             keyPassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
         }
     }

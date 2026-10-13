@@ -61,6 +61,13 @@ jobs:
           printf '%s' "$ANDROID_KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
           IFS=. read -r major minor patch <<<"$VERSION"
           export KEYSTORE_PATH="$RUNNER_TEMP/release.jks"
+          # The keystore has no "fz" alias: unless /release sets ANDROID_KEY_ALIAS, sign with its only key.
+          if [ -z "${ANDROID_KEY_ALIAS:-}" ]; then
+            ANDROID_KEY_ALIAS=$(keytool -list -keystore "$KEYSTORE_PATH" -storepass "$ANDROID_KEYSTORE_PASSWORD" |
+              awk -F', ' '/PrivateKeyEntry/ { print $1; exit }')
+            export ANDROID_KEY_ALIAS
+          fi
+          echo "signing with alias: $ANDROID_KEY_ALIAS"
           cd capacitor && npm ci --no-audit --no-fund && npm run build && npx cap sync android
           cd android
           chmod +x gradlew
