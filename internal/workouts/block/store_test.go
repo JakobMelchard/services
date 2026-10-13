@@ -30,8 +30,9 @@ func fakeStore(t *testing.T) *block.Store {
 	return storeOn(t, f)
 }
 
-// storeOn is a Store whose three sheets are the books of f.
-func storeOn(t *testing.T, f *fakesheets.Sheets) *block.Store {
+// storeOn is a Store whose three sheets are the books of f, usually a
+// *fakesheets.Sheets.
+func storeOn(t *testing.T, f http.Handler) *block.Store {
 	t.Helper()
 	srv := httptest.NewServer(f)
 	t.Cleanup(srv.Close)
@@ -139,5 +140,68 @@ func TestNextKeepsEarlierArchive(t *testing.T) {
 	}
 	if want := []string{"2026 w10", "2026 w10 (2)"}; !slices.Equal(got, want) {
 		t.Fatalf("archive tabs = %q, want %q", got, want)
+	}
+}
+
+// Starting a block copies each logged week, values and notes, to the archive,
+// removes it from the active sheet and records the new block.
+func TestNextArchivesWeek(t *testing.T) {
+	st := fakeStore(t)
+	note := "felt #easy"
+	if _, err := st.Edit(t.Context(), "w10", "MON", func(v block.View) ([]block.Row, error) {
+		return block.Apply(v.Rows, block.Ref{Day: "MON", Exercise: "Squat", Set: "1"}, block.Patch{Notes: &note})
+	}); err != nil {
+		t.Fatal(err)
+	}
+	info, err := st.Next(t.Context(), "w10-11")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if today := time.Now().Format("2006-01-02"); info.Program != "w10-11" || info.Started != today {
+		t.Errorf("block = %+v, want w10-11 started %s", info, today)
+	}
+	got, err := block.ReadSets(t.Context(), st.Archive, "2026 w10")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 1 || got[0].Exercise != "Squat" || got[0].Load != "1x5" || got[0].Notes != note {
+		t.Errorf("archived w10 = %+v, want the squat set with its note", got)
+	}
+	tabs, err := st.Active.Tabs(t.Context())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if slices.ContainsFunc(tabs, func(x gsheet.Tab) bool { return x.Title == "w10" }) {
+		t.Errorf("w10 still on the active sheet: %+v", tabs)
+	}
+}
+
+// A failed archive write leaves the active block as it was: no week is
+// removed before its copy is in the archive.
+func TestNextKeepsWeekWhenArchiveFails(t *testing.T) {
+	f := fakesheets.New()
+	f.Add("program", "w10-11", [][]string{{"MON", ""}, {"Squat", "1 x 5"}})
+	f.Add("active", "Block", [][]string{{"program", "w10-11"}, {"started", "2026-03-02"}})
+	f.Add("archive", "Sheet1", nil)
+	st := storeOn(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/v4/spreadsheets/archive/values:batchUpdate" {
+			http.Error(w, "backend error", http.StatusInternalServerError)
+			return
+		}
+		f.ServeHTTP(w, r)
+	}))
+	if _, err := st.Edit(t.Context(), "w10", "MON", func(v block.View) ([]block.Row, error) { return v.Rows, nil }); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := st.Next(t.Context(), "w10-11"); err == nil {
+		t.Fatal("Next succeeded with the archive failing")
+	}
+	info, err := st.Current(t.Context())
+	if err != nil || info.Started != "2026-03-02" {
+		t.Fatalf("block = %+v, %v; want the one started 2026-03-02", info, err)
+	}
+	v, err := st.Week(t.Context(), "w10")
+	if err != nil || len(v.Rows) != 1 || v.Rows[0].Planned {
+		t.Fatalf("w10 = %+v, %v; want Monday's set still logged", v, err)
 	}
 }
