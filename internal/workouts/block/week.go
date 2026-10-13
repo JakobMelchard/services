@@ -139,7 +139,7 @@ func ParseWeek(grid [][]string, notes []string) []Row {
 	day := ""
 	for i, g := range grid {
 		name, load := strings.TrimSpace(cell(g, 0)), strings.TrimSpace(cell(g, 1))
-		if name == "" {
+		if name == "" && load == "" {
 			continue
 		}
 		if load == "" {
