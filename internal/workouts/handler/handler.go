@@ -217,6 +217,8 @@ func writeView(w http.ResponseWriter, r *http.Request, v *block.View, err error)
 	switch {
 	case errors.As(err, &bad):
 		http.Error(w, bad.Error(), 400)
+	case errors.Is(err, block.ErrNoLoad):
+		http.Error(w, err.Error(), 400)
 	case errors.Is(err, block.ErrStale):
 		http.Error(w, err.Error(), http.StatusConflict)
 	case errors.Is(err, block.ErrNotWeek):
