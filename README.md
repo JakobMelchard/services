@@ -41,3 +41,6 @@ make screenshots
 ```
 
 Building needs cgo, workline parses with its tree-sitter grammar. Live tests against scratch spreadsheets are opt-in, see [docs/workouts/gsheet.md](docs/workouts/gsheet.md).
+
+`capacitor/` wraps the same UI in native Android and iOS apps; a release attaches a signed APK.
+Build, sync and install: [docs/workouts/capacitor.md](docs/workouts/capacitor.md).

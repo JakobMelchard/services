@@ -20,3 +20,14 @@ jobs:
 
   hooks:
     uses: JakobMelchard/.github/.github/workflows/hooks.yml@e1ef2b10e7ee0c5426f78d63a4e9c6a0ce9b3fe9 # v1.6.0
+
+  # Capacitor shell (capacitor/): the web UI bundled into native apps against
+  # https://workouts.lilfeelz.org. Debug APK as the Android proof.
+  android:
+    uses: JakobMelchard/.github/.github/workflows/android.yml@e1ef2b10e7ee0c5426f78d63a4e9c6a0ce9b3fe9 # v1.6.0
+    with:
+      java-version: "21"   # @capacitor/android 8 compiles for Java 21
+      setup-cmd: cd capacitor && npm ci --no-audit --no-fund && npm run build && npx cap sync android
+      working-directory: capacitor/android
+      gradle-tasks: assembleDebug
+      artifact-path: capacitor/android/app/build/outputs/apk/debug/*.apk

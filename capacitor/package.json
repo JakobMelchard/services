@@ -1,0 +1,17 @@
+{
+  "name": "workouts-capacitor",
+  "private": true,
+  "description": "Capacitor shell around the workouts web UI, talking to the Go server",
+  "scripts": {
+    "build": "node build.js",
+    "sync": "npm run build && cap sync"
+  },
+  "devDependencies": {
+    "@capacitor/android": "8.5.3",
+    "@capacitor/cli": "8.5.3",
+    "@capacitor/core": "8.5.3",
+    "@capacitor/ios": "8.5.3",
+    "@capacitor/preferences": "8.0.1",
+    "@jakobmelchard/web": "0.1.0"
+  }
+}
