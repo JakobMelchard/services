@@ -96,7 +96,7 @@ func New(dir string, now func() time.Time) (http.Handler, error) {
 		w.Header().Set("Cache-Control", "no-cache")
 		w.Write(manifest)
 	})
-	return mux, nil
+	return http.NewCrossOriginProtection().Handler(mux), nil
 }
 
 // guard answers 404 for a {l} or {id} outside the id shape before the handler
