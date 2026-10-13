@@ -198,6 +198,15 @@ func TestWeekEdits(t *testing.T) {
 	}
 }
 
+// The mux has already unescaped path values; a day named with a % sign must
+// not be unescaped a second time.
+func TestDayWithPercent(t *testing.T) {
+	h, _ := app(t, "")
+	if w := call(t, h, "POST", "/weeks/w10/days/DELOAD%2080%25/start", nil); w.Code != 200 {
+		t.Errorf("start DELOAD 80%%: %d %q, want 200", w.Code, w.Body.String())
+	}
+}
+
 func TestNextBlockRoute(t *testing.T) {
 	h, archive := app(t, "")
 	view(t, call(t, h, "POST", "/weeks/w10/days/MON/start", nil))

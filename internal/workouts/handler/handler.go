@@ -6,7 +6,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"net/url"
 	"strings"
 
 	"github.com/JakobMelchard/services/internal/workouts/block"
@@ -204,8 +203,8 @@ func weekDay(w http.ResponseWriter, r *http.Request) (string, string, bool) {
 	if !ok {
 		return "", "", false
 	}
-	day, err := url.PathUnescape(r.PathValue("day"))
-	if err != nil || day == "" {
+	day := r.PathValue("day")
+	if day == "" {
 		http.Error(w, "bad day", 400)
 		return "", "", false
 	}
@@ -231,8 +230,8 @@ func writeView(w http.ResponseWriter, r *http.Request, v *block.View, err error)
 }
 
 func tabParam(w http.ResponseWriter, r *http.Request) (string, bool) {
-	tab, err := url.PathUnescape(r.PathValue("tab"))
-	if err != nil || tab == "" {
+	tab := r.PathValue("tab")
+	if tab == "" {
 		http.Error(w, "bad tab", 400)
 		return "", false
 	}
