@@ -26,6 +26,8 @@ jobs:
   android:
     uses: JakobMelchard/.github/.github/workflows/android.yml@4258fca96cbd14e90054debed585f9cf8aad04f7 # v2.1.0
     with:
+      # x86_64: Android build-tools ship aapt2 for it only, and RUNNER_LINUX may be arm64.
+      runs-on: blacksmith-2vcpu-ubuntu-2404
       java-version: "21"   # @capacitor/android 8 compiles for Java 21
       setup-cmd: cd capacitor && npm ci --no-audit --no-fund && npm run build && npx cap sync android
       working-directory: capacitor/android
