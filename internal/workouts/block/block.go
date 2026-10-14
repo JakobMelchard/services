@@ -143,8 +143,8 @@ func (s *Store) state(ctx context.Context) (*Info, []string, error) {
 // week tab when it starts (see View). A program with invalid rows changes
 // nothing. Archive tabs are written before any week is removed from the
 // active sheet. An existing archive tab is never replaced: the copy gets a
-// " (2)" suffix, so a rerun after a partial failure leaves duplicates rather
-// than losing an earlier block's week. Cancelling ctx stops the reads; once the first tab is
+// " (2)" suffix, so an earlier block's week is never lost. A copy that fails
+// is removed again, so a retry writes under the real name. Cancelling ctx stops the reads; once the first tab is
 // written the rest follows regardless, so a client that goes away does not
 // leave a block half archived.
 func (s *Store) Next(ctx context.Context, tab string) (*Info, error) {
@@ -308,7 +308,12 @@ func copyWeek(ctx context.Context, from, to Sheet, w, tab string) error {
 	if err != nil {
 		return err
 	}
-	return writeWeek(ctx, to, tab, grid, notes)
+	if err := writeWeek(ctx, to, tab, grid, notes); err != nil {
+		// Never leave a partial copy under the archive name; the tab may not exist yet.
+		_ = to.DelTab(ctx, tab)
+		return err
+	}
+	return nil
 }
 
 // writeWeek (re)creates a week tab with rows and Load notes.
