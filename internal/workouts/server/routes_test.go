@@ -54,8 +54,10 @@ func app(t *testing.T, token string) (h http.Handler, archive func() []string) {
 	}
 }
 
-// call sends one request; a string body is a form, anything else JSON.
-func call(t *testing.T, h http.Handler, method, path string, body any) *httptest.ResponseRecorder {
+// call sends one request; a string body is a form, anything else JSON. cred
+// is "Bearer <token>" for the Authorization header, anything else the login
+// cookie's value.
+func call(t *testing.T, h http.Handler, method, path string, body any, cred ...string) *httptest.ResponseRecorder {
 	t.Helper()
 	var r *http.Request
 	switch b := body.(type) {
@@ -70,6 +72,13 @@ func call(t *testing.T, h http.Handler, method, path string, body any) *httptest
 			t.Fatal(err)
 		}
 		r = httptest.NewRequest(method, path, strings.NewReader(string(j)))
+	}
+	for _, c := range cred {
+		if strings.HasPrefix(c, "Bearer ") {
+			r.Header.Set("Authorization", c)
+		} else {
+			r.AddCookie(&http.Cookie{Name: cookieName, Value: c})
+		}
 	}
 	w := httptest.NewRecorder()
 	h.ServeHTTP(w, r)
@@ -230,15 +239,27 @@ func TestNextBlockRoute(t *testing.T) {
 	}
 }
 
+// Data routes need the token on reads too: each read spends Sheets quota and
+// shows the training log. The shell, the PWA files and login stay open.
 func TestRoutesNeedToken(t *testing.T) {
 	h, _ := app(t, "s3cret")
 	if w := call(t, h, "POST", "/weeks/w10/days/MON/start", nil); w.Code != 401 {
 		t.Errorf("write without token: %d, want 401", w.Code)
 	}
-	if w := call(t, h, "GET", "/weeks/w10/rows", nil); w.Code != 200 {
-		t.Errorf("read without token: %d, want 200", w.Code)
+	for _, path := range []string{"/block", "/programs/w10-11", "/weeks/w10/rows"} {
+		if w := call(t, h, "GET", path, nil); w.Code != 401 {
+			t.Errorf("GET %s without token: %d, want 401", path, w.Code)
+		}
+		if w := call(t, h, "GET", path, nil, "Bearer s3cret"); w.Code != 200 {
+			t.Errorf("GET %s with token: %d %q, want 200", path, w.Code, w.Body.String())
+		}
+		if w := call(t, h, "GET", path, nil, cookieValue("s3cret")); w.Code != 200 {
+			t.Errorf("GET %s with cookie: %d %q, want 200", path, w.Code, w.Body.String())
+		}
 	}
-	if w := call(t, h, "GET", "/login", nil); w.Code != 200 {
-		t.Errorf("GET /login: %d, want 200", w.Code)
+	for _, path := range []string{"/", "/login", "/sw.js", "/static/ui.js", "/web/base.css", "/static/manifest.webmanifest"} {
+		if w := call(t, h, "GET", path, nil); w.Code != 200 {
+			t.Errorf("GET %s without token: %d, want 200", path, w.Code)
+		}
 	}
 }

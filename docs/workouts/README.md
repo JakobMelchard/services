@@ -59,7 +59,7 @@ A changed tab answers 409 and writes nothing. Starting a block copies each activ
 
 ## Auth
 
-Non-GET routes need `Authorization: Bearer <t>` or the login cookie, else 401; GET routes are open. Set the token with `WORKOUTS_TOKEN` (not `-token`, flags show in `ps`). A 401 sends the browser to `/login`; the cookie is HttpOnly, SameSite=Strict, 30 days, and five wrong tokens lock login for a minute. Without a token the server starts only on loopback.
+Every data route, reads included, needs `Authorization: Bearer <t>` or the login cookie, else 401; only `/`, `/login`, `/sw.js`, `/static/*` and `/web/*` are open. Set the token with `WORKOUTS_TOKEN` (not `-token`, flags show in `ps`). A 401 sends the browser to `/login`; the cookie is HttpOnly, SameSite=Strict, 30 days, and five wrong tokens lock login for a minute. Without a token the server starts only on loopback.
 
 `SENTRY_DSN` reports handler panics (`SENTRY_ENVIRONMENT`, default `production`); unset sends nothing.
 

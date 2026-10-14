@@ -22,7 +22,7 @@ func main() {
 	embed := flag.String("embed", "", "optional published embed URL (.../pubhtml) shown in the Sheet view")
 	account := flag.String("account", "", "gsheet account email (default account if empty)")
 	saFile := flag.String("service-account", "", "service-account key JSON file; env GSHEET_SERVICE_PRINCIPAL_JSON wins")
-	token := flag.String("token", "", "bearer token for non-GET routes (env WORKOUTS_TOKEN); required unless -addr is loopback")
+	token := flag.String("token", "", "bearer token for the data routes (env WORKOUTS_TOKEN); required unless -addr is loopback")
 	tokenFile := flag.String("token-file", "", "read the token from this file (env WORKOUTS_TOKEN_FILE)")
 	flag.Parse()
 	if *token == "" {
