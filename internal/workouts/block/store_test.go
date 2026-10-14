@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -140,6 +141,49 @@ func TestNextKeepsEarlierArchive(t *testing.T) {
 	}
 	if want := []string{"2026 w10", "2026 w10 (2)"}; !slices.Equal(got, want) {
 		t.Fatalf("archive tabs = %q, want %q", got, want)
+	}
+}
+
+// A copy that fails midway leaves nothing under the archive name, so the
+// retry writes the one complete tab under the real name.
+func TestNextRetryAfterArchiveFailure(t *testing.T) {
+	f := fakesheets.New()
+	f.Add("program", "w10-11", [][]string{{"MON", ""}, {"Squat", "1 x 5"}})
+	f.Add("active", "Block", [][]string{{"program", "w10-11"}, {"started", "2026-03-02"}})
+	f.Add("archive", "Sheet1", nil)
+	var down atomic.Bool
+	down.Store(true)
+	st := storeOn(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if down.Load() && r.URL.Path == "/v4/spreadsheets/archive/values:batchUpdate" {
+			http.Error(w, "backend error", http.StatusInternalServerError)
+			return
+		}
+		f.ServeHTTP(w, r)
+	}))
+	if _, err := st.Edit(t.Context(), "w10", "MON", func(v block.View) ([]block.Row, error) { return v.Rows, nil }); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := st.Next(t.Context(), "w10-11"); err == nil {
+		t.Fatal("Next succeeded with the archive failing")
+	}
+	down.Store(false)
+	if _, err := st.Next(t.Context(), "w10-11"); err != nil {
+		t.Fatal(err)
+	}
+	tabs, err := st.Archive.Tabs(t.Context())
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got []string
+	for _, x := range tabs {
+		got = append(got, x.Title)
+	}
+	if want := []string{"2026 w10"}; !slices.Equal(got, want) {
+		t.Fatalf("archive tabs = %q, want %q", got, want)
+	}
+	sets, err := block.ReadSets(t.Context(), st.Archive, "2026 w10")
+	if err != nil || len(sets) != 1 || sets[0].Exercise != "Squat" {
+		t.Fatalf("archived w10 = %+v, %v; want the squat set", sets, err)
 	}
 }
 
