@@ -2,6 +2,8 @@ package gsheet_test
 
 import (
 	"crypto"
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -51,6 +53,7 @@ func (f *fakeTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 type state struct {
 	sheets    map[string]map[string][][]string
 	refreshed int
+	formats   []map[string]any // non-addSheet batchUpdate requests, in order
 }
 
 func TestEndToEnd(t *testing.T) {
@@ -90,11 +93,19 @@ func TestEndToEnd(t *testing.T) {
 			}
 			json.NewDecoder(r.Body).Decode(&body)
 			for _, d := range body.Data {
-				tab := strings.Trim(d.Range[:strings.Index(d.Range, "!")], "'")
+				tab, cell, _ := strings.Cut(d.Range, "!")
+				tab = strings.Trim(tab, "'")
 				if st.sheets[id] == nil {
 					st.sheets[id] = map[string][][]string{}
 				}
-				st.sheets[id][tab] = d.Values
+				row := 1
+				fmt.Sscanf(cell, "A%d", &row)
+				rows := st.sheets[id][tab]
+				for len(rows) < row-1+len(d.Values) {
+					rows = append(rows, nil)
+				}
+				copy(rows[row-1:], d.Values)
+				st.sheets[id][tab] = rows
 			}
 			w.WriteHeader(200)
 			w.Write([]byte("{}"))
@@ -124,6 +135,7 @@ func TestEndToEnd(t *testing.T) {
 				})
 				return
 			}
+			st.formats = append(st.formats, body.Requests[0])
 			w.WriteHeader(200)
 			w.Write([]byte("{}"))
 			return
@@ -182,8 +194,19 @@ func TestEndToEnd(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(grid) != 1 || grid[0][0] != "Deadlift" {
-		t.Errorf("read back = %v", grid)
+	if len(grid) != 2 || grid[0][0] != "Exercise" || grid[1][0] != "Deadlift" {
+		t.Errorf("read back = %v, want the header then the set", grid)
+	}
+	if len(st.formats) != 2 {
+		t.Fatalf("formatting requests = %v, want the header format and the checkbox", st.formats)
+	}
+	hdr := st.formats[0]["repeatCell"].(map[string]any)["range"].(map[string]any)
+	if hdr["sheetId"] != 1.0 || hdr["startRowIndex"] != 0.0 || hdr["endRowIndex"] != 1.0 || hdr["endColumnIndex"] != 5.0 {
+		t.Errorf("header format range = %v", hdr)
+	}
+	box := st.formats[1]["setDataValidation"].(map[string]any)["range"].(map[string]any)
+	if box["sheetId"] != 1.0 || box["startRowIndex"] != 1.0 || box["endRowIndex"] != 2.0 || box["startColumnIndex"] != 4.0 || box["endColumnIndex"] != 5.0 {
+		t.Errorf("checkbox range = %v, want row 2 of column E", box)
 	}
 	tabs, err := c.Tabs(ctx)
 	if err != nil {
@@ -197,9 +220,23 @@ func TestEndToEnd(t *testing.T) {
 	}
 }
 
+// Google issues PKCS#8 ("PRIVATE KEY") keys; PKCS#1 is accepted too.
 func TestServiceAccount(t *testing.T) {
 	key, _ := rsa.GenerateKey(rand.Reader, 2048)
-	pemBytes := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
+	pkcs8, _ := x509.MarshalPKCS8PrivateKey(key)
+	for _, k := range []struct {
+		typ string
+		der []byte
+	}{
+		{"PRIVATE KEY", pkcs8},
+		{"RSA PRIVATE KEY", x509.MarshalPKCS1PrivateKey(key)},
+	} {
+		t.Run(k.typ, func(t *testing.T) { serviceAccount(t, key, k.typ, k.der) })
+	}
+}
+
+func serviceAccount(t *testing.T, key *rsa.PrivateKey, typ string, der []byte) {
+	pemBytes := pem.EncodeToMemory(&pem.Block{Type: typ, Bytes: der})
 	saJSON := fmt.Sprintf(`{"client_email":"svc@proj.iam.gserviceaccount.com","private_key":%q,"token_uri":"https://oauth2.googleapis.com/token"}`, pemBytes)
 
 	var tokenCount int
@@ -253,6 +290,28 @@ func TestServiceAccount(t *testing.T) {
 	}
 	if tokenCount != 1 {
 		t.Errorf("token fetched %d times, want 1 (cached)", tokenCount)
+	}
+}
+
+func TestServiceAccountBadKey(t *testing.T) {
+	ec, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	der, _ := x509.MarshalPKCS8PrivateKey(ec)
+	for name, c := range map[string]struct {
+		key  []byte
+		want string
+	}{
+		"no PEM block": {[]byte("not a key"), "no PEM private key"},
+		"ECDSA":        {pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: der}), "RSA key required"},
+		"garbage DER":  {pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: []byte("junk")}), "unsupported private key"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			saJSON := fmt.Sprintf(`{"client_email":"svc@x","private_key":%q}`, c.key)
+			cl := gsheet.New("S", gsheet.WithServiceAccount([]byte(saJSON)))
+			cl.HTTP = &http.Client{Transport: &fakeTransport{target: "unused"}}
+			if _, err := cl.Tabs(t.Context()); err == nil || !strings.Contains(err.Error(), c.want) {
+				t.Fatalf("err = %v, want %q", err, c.want)
+			}
+		})
 	}
 }
 
