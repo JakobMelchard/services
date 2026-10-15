@@ -1,3 +1,3 @@
-import { register } from "/web/register.js";
+import { register } from '/web/register.js'
 
-register({ version: "1" })?.catch(() => {});
+register({ version: '1' })?.catch(() => {})
