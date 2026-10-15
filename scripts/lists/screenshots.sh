@@ -1,8 +1,6 @@
 #!/bin/sh
 # Regenerates docs/lists/screenshots/*.png from internal/lists/data/demo at phone width (390x844).
-# Needs bin/lists (make build), node, and a Playwright install with its Chromium:
-# NODE_PATH points at a node_modules holding playwright, Chromium comes from
-# ~/Library/Caches/ms-playwright.
+# Needs bin/lists (make build), node and the repo's node_modules (npm ci); fetches Playwright's Chromium.
 set -eu
 cd "$(dirname "$0")/../.."
 tmp=$(mktemp -d)
@@ -16,4 +14,5 @@ until grep -q 'lists on' "$tmp/log"; do
   sleep 0.2
 done
 addr=$(sed -n 's/.*lists on \([^ ,]*\).*/\1/p' "$tmp/log")
-node scripts/lists/screenshots.cjs "http://$addr/" docs/lists/screenshots
+npx --no-install playwright install chromium >/dev/null
+node scripts/lists/screenshots.js "http://$addr/" docs/lists/screenshots
