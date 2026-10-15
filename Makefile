@@ -24,6 +24,7 @@ lint:
 test:
 	go test -race ./...
 	node --test "internal/workouts/ui/test/*.test.mjs"
+	.github/scripts/build-release-apk_test.sh
 
 # needs node and a Playwright with Chromium, see scripts/lists/screenshots.sh
 screenshots: build
