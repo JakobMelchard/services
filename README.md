@@ -6,6 +6,7 @@ Go services on the tailnet: lists and workouts.
 make build    # bin/lists, bin/workouts, bin/gsheet
 make test
 make vet lint
+npm ci && npx tsc   # JSDoc type check of the pages' JS and the scripts
 make screenshots
 ```
 

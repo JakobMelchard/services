@@ -1,0 +1,14 @@
+{
+  "extends": "@jakobmelchard/config/tsconfig",
+  "compilerOptions": {
+    // The pages import /web/ (the @jakobmelchard/web shell the servers embed) and /static/ by
+    // absolute URL; these map them to the files, and the depth lets tsc read the shell's JSDoc.
+    "paths": {
+      "/web/*": ["./node_modules/@jakobmelchard/web/dist/*"],
+      "/static/*": ["./internal/workouts/ui/static/*"]
+    },
+    "maxNodeModuleJsDepth": 1
+  },
+  "include": ["internal/*/ui/static", "internal/*/ui/test", "scripts", "capacitor/build.js"],
+  "exclude": ["internal/lists/ui/static/htmx.min.js"]
+}

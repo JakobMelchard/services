@@ -18,3 +18,11 @@ repos:
       - id: conventional-commit
       - id: gofmt
       - id: go-build
+  - repo: local
+    hooks:
+      - id: tsc
+        name: tsc (repo-installed)
+        entry: npx --no-install tsc
+        language: system
+        types_or: [javascript, ts]
+        pass_filenames: false

@@ -1,0 +1,16 @@
+{
+  "name": "services",
+  "private": true,
+  "description": "Dev tooling for the services' web JS: type check and screenshots",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc"
+  },
+  "devDependencies": {
+    "@jakobmelchard/config": "github:JakobMelchard/.config#v3.0.0",
+    "@jakobmelchard/web": "0.1.0",
+    "@types/node": "^22",
+    "playwright": "1.63.0",
+    "typescript": "^5"
+  }
+}

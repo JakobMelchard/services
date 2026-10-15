@@ -3,3 +3,4 @@ dist/
 bin/
 .data/
 tmp/
+node_modules/

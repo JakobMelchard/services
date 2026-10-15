@@ -4,16 +4,17 @@
 // the API origin (static/config.js) and the Capacitor runtime (registerPlugin
 // for ui.js) loaded first.
 // WORKOUTS_API picks the server, e.g. a dev box on the tailnet.
-"use strict";
-const fs = require("node:fs");
-const path = require("node:path");
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const api = (process.env.WORKOUTS_API || "https://workouts.lilfeelz.org").replace(/\/+$/, "");
 if (!/^https?:\/\/[^/\s]+$/.test(api)) throw new Error(`WORKOUTS_API must be an origin like https://host[:port], got ${api}`);
 
-const ui = path.join(__dirname, "..", "internal", "workouts", "ui");
-const mod = (...p) => path.join(__dirname, "node_modules", ...p);
-const www = path.join(__dirname, "www");
+const here = path.dirname(fileURLToPath(import.meta.url));
+const ui = path.join(here, "..", "internal", "workouts", "ui");
+const mod = (/** @type {string[]} */ ...p) => path.join(here, "node_modules", ...p);
+const www = path.join(here, "www");
 fs.rmSync(www, { recursive: true, force: true });
 fs.cpSync(path.join(ui, "static"), path.join(www, "static"), { recursive: true });
 fs.cpSync(mod("@jakobmelchard", "web", "dist"), path.join(www, "web"), { recursive: true });
@@ -23,7 +24,7 @@ fs.copyFileSync(mod("@capacitor", "core", "dist", "capacitor.js"), path.join(www
 let html = fs.readFileSync(path.join(ui, "templates", "index.html"), "utf8")
   .replace("{{if not .Embed}} hidden{{end}}", " hidden")
   .replace('data-src="{{.Embed}}"', 'data-src=""');
-if (html.includes("{{")) throw new Error("index.html has a template action build.js does not know: " + html.match(/{{[^}]*}}/)[0]);
+if (html.includes("{{")) throw new Error("index.html has a template action build.js does not know: " + (html.match(/{{[^}]*}}/)?.[0] ?? "{{"));
 const tag = '<script type="module" src="/static/ui.js"></script>';
 if (!html.includes(tag)) throw new Error("index.html does not load " + tag);
 fs.writeFileSync(path.join(www, "static", "config.js"), `window.WORKOUTS_API = ${JSON.stringify(api)};\n`);

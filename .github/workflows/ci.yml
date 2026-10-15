@@ -20,6 +20,15 @@ jobs:
 
   hooks:
     uses: JakobMelchard/.github/.github/workflows/hooks.yml@4258fca96cbd14e90054debed585f9cf8aad04f7 # v2.1.0
+    with:
+      skip: tsc # needs node_modules; the js job runs it
+
+  # The pages' JS, its tests and the scripts, type-checked with JSDoc (tsconfig.json).
+  js:
+    uses: JakobMelchard/.github/.github/workflows/node.yml@4258fca96cbd14e90054debed585f9cf8aad04f7 # v2.1.0
+    with:
+      check-cmd: npx tsc
+      lint-cmd: ""
 
   # Capacitor shell (capacitor/): the web UI bundled into native apps against
   # https://workouts.lilfeelz.org. Debug APK as the Android proof.

@@ -2,6 +2,7 @@
   "name": "workouts-capacitor",
   "private": true,
   "description": "Capacitor shell around the workouts web UI, talking to the Go server",
+  "type": "module",
   "scripts": {
     "build": "node build.js",
     "sync": "npm run build && cap sync"
