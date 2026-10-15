@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.2](https://github.com/JakobMelchard/services/compare/v0.1.1...v0.1.2) (2026-10-15)
+
+
+### Bug Fixes
+
+* **workouts:** require the token on the data reads, HEAD /login is the form ([#47](https://github.com/JakobMelchard/services/issues/47)) ([c9e0134](https://github.com/JakobMelchard/services/commit/c9e0134b6f7a60e103ef0ef6a441fc2c200a1823))
+* **workouts:** send the bearer token from the phone app ([#46](https://github.com/JakobMelchard/services/issues/46)) ([ac56315](https://github.com/JakobMelchard/services/commit/ac563152f4d296390855e80682b933fef240a5fb))
+
 ## [0.1.1](https://github.com/JakobMelchard/services/compare/v0.1.0...v0.1.1) (2026-10-14)
 
 
