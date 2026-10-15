@@ -9,7 +9,7 @@ permissions: {}
 
 jobs:
   release:
-    uses: JakobMelchard/.github/.github/workflows/release.yml@da5c1f89e2029e3f3e7a39a5dc1c9f9d5ad2084e # v2.2.3
+    uses: JakobMelchard/.github/.github/workflows/release.yml@531b4dcb30293e6219d67e312e164cc262a69955 # v2.3.1
     permissions:
       contents: read
       id-token: write
