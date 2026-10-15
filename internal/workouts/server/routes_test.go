@@ -272,6 +272,6 @@ func TestRoutesNeedToken(t *testing.T) {
 		}
 	}
 	if w := call(t, h, "POST", "/login", "token=s3cret"); w.Code != 303 {
-		t.Errorf("POST /login after %d HEADs: %d, want 303 (HEAD counted as a try)", loginTries, w.Code)
+		t.Errorf("POST /login after %d HEADs: %d, want 303, a HEAD must not count as a try", loginTries, w.Code)
 	}
 }
