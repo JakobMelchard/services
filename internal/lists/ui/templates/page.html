@@ -12,6 +12,6 @@
 <body>
 <div class="bar"><input id="q" name="q" value="{{.Q}}" placeholder="search, or sev:3 -done" hx-get="/app" hx-trigger="input changed delay:300ms" hx-include="#list" hx-target="#app" hx-swap="innerHTML"></div>
 <main id="app">{{template "app" .}}</main>
-<script type="module">import { register } from "/web/register.js"; register({ version: "1" })?.catch(() => {});</script>
+<script type="module" src="/static/app.js"></script>
 </body></html>
 {{end}}

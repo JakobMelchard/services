@@ -11,7 +11,8 @@ import (
 func TestStaticRoutes(t *testing.T) {
 	f := mk(t)
 	for path, want := range map[string][2]string{
-		"/":                            {"text/html; charset=utf-8", `register({ version: "1" })`},
+		"/":                            {"text/html; charset=utf-8", `<script type="module" src="/static/app.js">`},
+		"/static/app.js":               {"text/javascript; charset=utf-8", `register({ version: "1" })`},
 		"/sw.js":                       {"text/javascript", `importScripts("/web/sw.js")`},
 		"/static/manifest.webmanifest": {"application/manifest+json", `"id": "/"`},
 		"/web/tokens.css":              {"text/css; charset=utf-8", "--bg"},

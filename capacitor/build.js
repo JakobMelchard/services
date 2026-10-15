@@ -1,7 +1,8 @@
 // Builds www/, the web assets Capacitor bundles: internal/workouts/ui/static as
 // is, the shared shell (@jakobmelchard/web, the server's /web/) under www/web,
 // plus index.html rendered from the server's template with no embed and with
-// the API origin and the Capacitor runtime (registerPlugin for ui.js) added.
+// the API origin (static/config.js) and the Capacitor runtime (registerPlugin
+// for ui.js) loaded first.
 // WORKOUTS_API picks the server, e.g. a dev box on the tailnet.
 "use strict";
 const fs = require("node:fs");
@@ -25,6 +26,7 @@ let html = fs.readFileSync(path.join(ui, "templates", "index.html"), "utf8")
 if (html.includes("{{")) throw new Error("index.html has a template action build.js does not know: " + html.match(/{{[^}]*}}/)[0]);
 const tag = '<script type="module" src="/static/ui.js"></script>';
 if (!html.includes(tag)) throw new Error("index.html does not load " + tag);
-html = html.replace(tag, `<script>window.WORKOUTS_API = ${JSON.stringify(api)};</script>\n<script src="/static/capacitor.js"></script>\n${tag}`);
+fs.writeFileSync(path.join(www, "static", "config.js"), `window.WORKOUTS_API = ${JSON.stringify(api)};\n`);
+html = html.replace(tag, `<script src="/static/config.js"></script>\n<script src="/static/capacitor.js"></script>\n${tag}`);
 fs.writeFileSync(path.join(www, "index.html"), html);
 console.log(`www/ built for ${api}`);
