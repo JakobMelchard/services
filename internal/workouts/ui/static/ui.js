@@ -41,9 +41,45 @@ function kept(path) {
 const API = globalThis.WORKOUTS_API || "";
 const native = !!globalThis.Capacitor?.isNativePlatform?.();
 
+// The ops queue and the token live in localStorage on the web and in Capacitor
+// Preferences in the app, where the WebView's storage is not durable.
+// capacitor.js, loaded by the app's index.html, gives registerPlugin;
+// Preferences is native, no JS.
+const prefs = native && globalThis.Capacitor.registerPlugin("Preferences");
+const kv = prefs ? {
+  async get(k) {
+    try { return JSON.parse((await prefs.get({ key: k })).value); } catch { return null; }
+  },
+  async set(k, v) {
+    try { await prefs.set({ key: k, value: JSON.stringify(v) }); } catch { /* storage unavailable */ }
+  },
+} : {
+  async get(k) { return JSON.parse(recall(k)); },
+  async set(k, v) { remember(k, JSON.stringify(v)); },
+};
+
+// Every route but the shell needs the token. The web gets it as the login
+// cookie; the app's requests leave the WebView through native HTTP, so it
+// sends the token itself, asked once on the first 401 and kept in Preferences.
+let token = native ? await kv.get("token") : null;
+const withToken = (opts) => (token ? { ...opts, headers: { ...opts.headers, authorization: "Bearer " + token } } : opts);
+
+async function unauthorized() {
+  if (native) {
+    const t = prompt("workouts token");
+    if (t) {
+      await kv.set("token", t);
+      location.reload();
+    }
+  } else {
+    location.assign(API + "/login");
+  }
+  throw new Error("login required");
+}
+
 async function api(path, opts = {}) {
   let res = null;
-  try { res = await fetch(API + path, opts); } catch { /* network down */ }
+  try { res = await fetch(API + path, withToken(opts)); } catch { /* network down */ }
   if (!res || res.headers.get("X-Offline") === "1") {
     const body = opts.method ? undefined : kept(path);
     if (body === undefined) throw offlineErr();
@@ -52,10 +88,7 @@ async function api(path, opts = {}) {
   }
   if (!opts.method) savedCopy = false;
   if (res.status === 204) return null;
-  if (res.status === 401) {
-    location.assign(API + "/login");
-    throw new Error("login required");
-  }
+  if (res.status === 401) await unauthorized();
   if (!res.ok) {
     const err = new Error((await res.text()).trim() || res.statusText);
     err.status = res.status;
@@ -174,22 +207,6 @@ function ref(i) {
 let queued = [], offline = false, latest = null, reload = false, sent = 0;
 const failed = [];
 
-// The ops live in localStorage on the web and in Capacitor Preferences in the
-// app, where the WebView's storage is not durable. capacitor.js, loaded by
-// the app's index.html, gives registerPlugin; Preferences is native, no JS.
-const prefs = native && globalThis.Capacitor.registerPlugin("Preferences");
-const kv = prefs ? {
-  async get(k) {
-    try { return JSON.parse((await prefs.get({ key: k })).value); } catch { return null; }
-  },
-  async set(k, v) {
-    try { await prefs.set({ key: k, value: JSON.stringify(v) }); } catch { /* storage unavailable */ }
-  },
-} : {
-  async get(k) { return JSON.parse(recall(k)); },
-  async set(k, v) { remember(k, JSON.stringify(v)); },
-};
-
 const store = {
   async get(k) {
     queued = (await kv.get(k)) ?? [];
@@ -208,20 +225,17 @@ const store = {
 async function send(op) {
   let res;
   try {
-    res = await fetch(API + weekPath(op.tab) + opPath(op), {
+    res = await fetch(API + weekPath(op.tab) + opPath(op), withToken({
       method: opMethod[op.kind],
       headers: { "content-type": "application/json" },
       body: JSON.stringify(op.body),
-    });
+    }));
   } catch (e) {
     offline = true;
     throw e;
   }
   offline = res.headers.get("X-Offline") === "1";
-  if (res.status === 401) {
-    location.assign(API + "/login");
-    throw new Error("login required");
-  }
+  if (res.status === 401) await unauthorized();
   if (res.ok && !offline) {
     sent++;
     latest = { tab: op.tab, view: await res.clone().json() };
