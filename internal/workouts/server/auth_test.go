@@ -16,8 +16,19 @@ func TestRequireToken(t *testing.T) {
 		name, token, method, path, auth, cookie string
 		want                                    int
 	}{
-		{"get without token", "s3cret", "GET", "/tabs", "", "", 204},
-		{"head without token", "s3cret", "HEAD", "/", "", "", 204},
+		{"get data without token", "s3cret", "GET", "/block", "", "", 401},
+		{"get data wrong", "s3cret", "GET", "/weeks/w10/rows", "Bearer nope", "", 401},
+		{"get data right", "s3cret", "GET", "/weeks/w10/rows", "Bearer s3cret", "", 204},
+		{"get data right cookie", "s3cret", "GET", "/programs/w10-11", "", cookieValue("s3cret"), 204},
+		{"head data without token", "s3cret", "HEAD", "/block", "", "", 401},
+		{"get shell without token", "s3cret", "GET", "/", "", "", 204},
+		{"head shell without token", "s3cret", "HEAD", "/", "", "", 204},
+		{"get login without token", "s3cret", "GET", "/login", "", "", 204},
+		{"head login without token", "s3cret", "HEAD", "/login", "", "", 204},
+		{"get static without token", "s3cret", "GET", "/static/ui.js", "", "", 204},
+		{"get web without token", "s3cret", "GET", "/web/base.css", "", "", 204},
+		{"get sw without token", "s3cret", "GET", "/sw.js", "", "", 204},
+		{"get under static-like name", "s3cret", "GET", "/staticx", "", "", 401},
 		{"delete missing", "s3cret", "DELETE", "/tabs/x", "", "", 401},
 		{"delete wrong", "s3cret", "DELETE", "/tabs/x", "Bearer nope", "", 401},
 		{"delete right", "s3cret", "DELETE", "/tabs/x", "Bearer s3cret", "", 204},
@@ -29,6 +40,7 @@ func TestRequireToken(t *testing.T) {
 		{"put routine right", "s3cret", "PUT", "/routines/x", "Bearer s3cret", "", 204},
 		{"login exempt", "s3cret", "POST", "/login", "", "", 204},
 		{"no token configured (loopback)", "", "DELETE", "/tabs/x", "", "", 204},
+		{"no token configured, get data", "", "GET", "/block", "", "", 204},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -120,6 +132,22 @@ func TestLoginCookieSecure(t *testing.T) {
 		if len(c) != 1 || c[0].Secure != tt.want {
 			t.Errorf("%s: cookies %+v, want one with Secure=%v", name, c, tt.want)
 		}
+	}
+}
+
+// HEAD reaches login through the GET route (a GET pattern matches HEAD): it
+// gets the form's headers and is not a login try, so it cannot lock login.
+func TestLoginHeadIsNotATry(t *testing.T) {
+	h := login(template.Must(template.New("login.html").Parse("form")), "s3cret")
+	for range loginTries {
+		w := httptest.NewRecorder()
+		h(w, httptest.NewRequest("HEAD", "/login", nil))
+		if w.Code != 200 || len(w.Result().Cookies()) != 0 {
+			t.Fatalf("HEAD /login: %d, cookies %v; want 200 and none", w.Code, w.Result().Cookies())
+		}
+	}
+	if w := post(h, "s3cret", func(*http.Request) {}); w.Code != 303 {
+		t.Errorf("right token after %d HEADs: got %d, want 303", loginTries, w.Code)
 	}
 }
 

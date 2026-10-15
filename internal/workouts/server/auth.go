@@ -42,7 +42,21 @@ func eq(a, b string) bool {
 	return subtle.ConstantTimeCompare([]byte(a), []byte(b)) == 1
 }
 
-// requireToken gates every non-GET/HEAD request, except POST /login, on
+// public is what is served without a credential: the app shell, the PWA
+// files and the login form. The data routes hold the training log and each
+// read costs Sheets quota, so they are gated whatever the method.
+func public(r *http.Request) bool {
+	p := r.URL.Path
+	switch r.Method {
+	case http.MethodGet, http.MethodHead:
+		return p == "/" || p == "/login" || p == "/sw.js" || strings.HasPrefix(p, "/static/") || strings.HasPrefix(p, "/web/")
+	case http.MethodPost:
+		return p == "/login"
+	}
+	return false
+}
+
+// requireToken gates every request but the public ones on
 // "Authorization: Bearer <token>" or the login cookie. Empty token disables it.
 func requireToken(token string, next http.Handler) http.Handler {
 	if token == "" {
@@ -50,8 +64,7 @@ func requireToken(token string, next http.Handler) http.Handler {
 	}
 	cv := cookieValue(token)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet || r.Method == http.MethodHead ||
-			(r.Method == http.MethodPost && r.URL.Path == "/login") {
+		if public(r) {
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -84,7 +97,7 @@ func login(tpl *template.Template, token string) http.HandlerFunc {
 		locked time.Time
 	)
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet {
+		if r.Method != http.MethodPost { // GET, and HEAD through the GET route: the form, not a try
 			if err := tpl.ExecuteTemplate(w, "login.html", nil); err != nil {
 				log.Printf("login: %v", err)
 			}
