@@ -1,6 +1,6 @@
 # Phone (Capacitor)
 
-`capacitor/` bundles the workouts UI as native Android and iOS apps; only the API is remote (`WORKOUTS_API`, sent through Capacitor's native HTTP).
+`capacitor/` bundles the workouts UI as native Android and iOS apps; only the API is remote (`WORKOUTS_API`, sent through Capacitor's native HTTP). The app has no login cookie: on its first 401 it asks for the token (`WORKOUTS_TOKEN`), keeps it in Capacitor Preferences and sends it as `Authorization: Bearer` on every request. Clear the app's data to enter another one.
 
 ```sh
 cd capacitor
