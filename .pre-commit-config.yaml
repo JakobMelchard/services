@@ -18,6 +18,8 @@ repos:
       - id: conventional-commit
       - id: gofmt
       - id: go-build
+      - id: prettier
+      - id: eslint
   - repo: local
     hooks:
       - id: tsc
