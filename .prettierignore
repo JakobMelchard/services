@@ -1,0 +1,16 @@
+internal/lists/ui/static/htmx.min.js
+# Go html/template files: prettier does not know {{ }} actions
+internal/*/ui/templates/
+internal/lists/ui/static/offline.html
+internal/*/data/
+capacitor/android/
+capacitor/ios/
+capacitor/www/
+capacitor/capacitor.config.json
+package-lock.json
+CHANGELOG.md
+.release-please-manifest.json
+# rendered by JakobMelchard/template or prose: not reformatted here
+*.md
+*.yml
+*.yaml

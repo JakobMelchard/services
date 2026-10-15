@@ -4,13 +4,22 @@
   "description": "Dev tooling for the services' web JS: type check and screenshots",
   "type": "module",
   "scripts": {
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "check": "tsc && prettier --check . && eslint ."
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@jakobmelchard/config": "github:JakobMelchard/.config#v3.0.0",
     "@jakobmelchard/web": "0.1.0",
     "@types/node": "^22",
+    "eslint": "^10.12.0",
+    "eslint-plugin-jsdoc": "^65.3.6",
+    "globals": "^17.13.0",
     "playwright": "1.63.0",
+    "prettier": "^3.9.10",
     "typescript": "^5"
-  }
+  },
+  "prettier": "@jakobmelchard/config/prettier"
 }
