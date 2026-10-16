@@ -19,7 +19,7 @@ jobs:
   apk:
     needs: release
     if: needs.release.outputs.release_created == 'true'
-    runs-on: ${{ fromJSON(vars.RUNNER_LINUX || '"blacksmith-2vcpu-ubuntu-2404"') }}
+    runs-on: ${{ fromJSON(vars.RUNNER_LINUX || '"ubuntu-latest"') }}
     permissions:
       contents: write
       id-token: write
